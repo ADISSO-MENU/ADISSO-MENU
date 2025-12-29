@@ -316,14 +316,17 @@ el("clearNoteBtn").addEventListener("click", () => {
       });
     }
 function orderViaWhatsApp() {
-  if (!cart.length) {
+  const cart = loadCart();
+  const items = Object.values(cart);
+
+  if (items.length === 0) {
     alert("Your cart is empty");
     return;
   }
 
   let message = "🧾 *New Order*\n\n";
 
-  cart.forEach(item => {
+  items.forEach(item => {
     message += `• ${item.name} ×${item.qty}\n`;
     if (item.note) {
       message += `  Note: ${item.note}\n`;
@@ -331,14 +334,15 @@ function orderViaWhatsApp() {
     message += "\n";
   });
 
-  message += `Total: ${formatPrice(cartTotal())}`;
+  message += `Total: ${priceUSD(calcTotal(cart))}\n`;
+  message += `Order Code: ${getOrderCode()}`;
 
-  const phone = "96176146458"; 
+  const phone = "96176146458"; // WhatsApp number
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
 
-window.location.href = url;
-
+  window.open(url, "_blank");
 }
+
 
     // =========================
     // RENDER
