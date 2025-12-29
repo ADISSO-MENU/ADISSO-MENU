@@ -282,21 +282,36 @@
   max-width: 260px;
 }
 .whatsapp-btn-sm {
-  background: #25D366;
-  color: #fff;
+  background-color: #25D366 !important;
+  color: #fff !important;
+  border: none !important;
   font-weight: 500;
-  border: none;
   padding: 6px 12px;
   font-size: 0.9rem;
   border-radius: 8px;
-  transition: background 0.15s ease, transform 0.1s ease;
+  transition: background-color 0.15s ease, transform 0.1s ease;
 }
 
+/* Hover (desktop) */
 .whatsapp-btn-sm:hover {
-  background: #1ebe5d;
+  background-color: #1ebe5d !important;
+}
+.whatsapp-btn-sm {
+  -webkit-tap-highlight-color: transparent;
 }
 
+/* Active (mobile tap) */
 .whatsapp-btn-sm:active {
+  background-color: #1aa34a !important;
   transform: scale(0.96);
 }
+
+/* Focus fix (mobile Safari) */
+.whatsapp-btn-sm:focus,
+.whatsapp-btn-sm:focus-visible {
+  background-color: #25D366 !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
 
