@@ -315,6 +315,29 @@ el("clearNoteBtn").addEventListener("click", () => {
         });
       });
     }
+function orderViaWhatsApp() {
+  if (!cart.length) {
+    alert("Your cart is empty");
+    return;
+  }
+
+  let message = "🧾 *New Order*\n\n";
+
+  cart.forEach(item => {
+    message += `• ${item.name} ×${item.qty}\n`;
+    if (item.note) {
+      message += `  Note: ${item.note}\n`;
+    }
+    message += "\n";
+  });
+
+  message += `Total: ${formatPrice(cartTotal())}`;
+
+  const phone = "96176146458"; 
+  const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+  window.open(url, "_blank");
+}
 
     // =========================
     // RENDER
@@ -581,3 +604,5 @@ if (addBtn) {
   modalImg.src = img.getAttribute("data-fullimg");
   modalImg.alt = img.alt || "Image";
 });
+document.getElementById("orderWhatsappBtn")
+  ?.addEventListener("click", orderViaWhatsApp);
