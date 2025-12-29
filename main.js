@@ -334,8 +334,7 @@ function orderViaWhatsApp() {
     message += "\n";
   });
 
-  message += `Total: ${priceUSD(calcTotal(cart))}\n`;
-  message += `Order Code: ${getOrderCode()}`;
+
 
   const phone = "96176146458"; // WhatsApp number
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
