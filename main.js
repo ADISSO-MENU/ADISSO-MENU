@@ -153,8 +153,7 @@ function renderCartModal() {
   const list = el("cartList");
   const empty = el("cartEmpty");
 
-  // (you said you want to remove order code later - you can comment this)
-  el("cartOrderCode").textContent = `Order Code: ${getOrderCode()}`;
+
 
   list.innerHTML = "";
 
