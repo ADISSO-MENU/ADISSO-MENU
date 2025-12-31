@@ -323,38 +323,47 @@ function orderViaWhatsApp() {
     return;
   }
 
-  let message = "🧾 *New Order*\n\n";
   let header = "";
 
-if (orderType === "Dine In") {
-  header = `🪑 Dine In – Table ${tableNumber}\n\n`;
-} else {
-  header = `🚚 Delivery\n\n`;
-}
+  if (orderType === "Dine In") {
+    header = tableNumber
+      ? `🪑 Dine In – Table ${tableNumber}\n\n`
+      : `🪑 Dine In\n\n`;
+  } else if (orderType === "Delivery") {
+    header = `🚚 Delivery\n\n`;
+  } else if (orderType === "Take Away") {
+    header = `🥡 Take Away\n\n`;
+  }
 
-message = header + message;
+  let message = header + "🧾 *New Order*\n\n";
 
   items.forEach(item => {
-    message += `• ${item.name} ×${item.qty}\n`;
-    if (item.note) {
-      message += `  Note: ${item.note}\n`;
-    }
-    message = header + message;
+    const note =
+      item.note && item.note.trim()
+        ? ` (${item.note.trim()})`
+        : "";
+
+    message += `• ${item.name} ×${item.qty}${note}\n`;
   });
 
-
-
-  const phone = "96176146458"; // WhatsApp number
+  const phone = "96176146458";
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-
   window.open(url, "_blank");
 }
+
+
 let orderType = "";
 let tableNumber = "";
 
 document.getElementById("dineInBtn").onclick = () => {
   orderType = "Dine In";
   document.getElementById("tableNumberWrap").classList.remove("d-none");
+};
+
+document.getElementById("takeAwayBtn").onclick = () => {
+  orderType = "Take Away";
+  tableNumber = "";
+  document.getElementById("tableNumberWrap").classList.add("d-none");
 };
 
 document.getElementById("deliveryBtn").onclick = () => {
@@ -369,15 +378,11 @@ document.getElementById("confirmOrderType").onclick = () => {
     return;
   }
 
-  if (orderType === "Dine In") {
-    tableNumber = document.getElementById("tableNumberInput").value;
-    if (!tableNumber) {
-      alert("Please enter table number");
-      return;
-    }
-  }
+if (orderType === "Dine In") {
+  tableNumber = document.getElementById("tableNumberInput").value.trim();
+}
 
-  sendOrderToWhatsapp();
+  orderViaWhatsApp();
 };
 
 
