@@ -324,13 +324,22 @@ function orderViaWhatsApp() {
   }
 
   let message = "🧾 *New Order*\n\n";
+  let header = "";
+
+if (orderType === "Dine In") {
+  header = `🪑 Dine In – Table ${tableNumber}\n\n`;
+} else {
+  header = `🚚 Delivery\n\n`;
+}
+
+message = header + message;
 
   items.forEach(item => {
     message += `• ${item.name} ×${item.qty}\n`;
     if (item.note) {
       message += `  Note: ${item.note}\n`;
     }
-    message += "\n";
+    message = header + message;
   });
 
 
@@ -340,6 +349,36 @@ function orderViaWhatsApp() {
 
   window.open(url, "_blank");
 }
+let orderType = "";
+let tableNumber = "";
+
+document.getElementById("dineInBtn").onclick = () => {
+  orderType = "Dine In";
+  document.getElementById("tableNumberWrap").classList.remove("d-none");
+};
+
+document.getElementById("deliveryBtn").onclick = () => {
+  orderType = "Delivery";
+  tableNumber = "";
+  document.getElementById("tableNumberWrap").classList.add("d-none");
+};
+
+document.getElementById("confirmOrderType").onclick = () => {
+  if (!orderType) {
+    alert("Please select order type");
+    return;
+  }
+
+  if (orderType === "Dine In") {
+    tableNumber = document.getElementById("tableNumberInput").value;
+    if (!tableNumber) {
+      alert("Please enter table number");
+      return;
+    }
+  }
+
+  sendOrderToWhatsapp();
+};
 
 
     // =========================
@@ -607,5 +646,7 @@ if (addBtn) {
   modalImg.src = img.getAttribute("data-fullimg");
   modalImg.alt = img.alt || "Image";
 });
-document.getElementById("orderWhatsappBtn")
-  ?.addEventListener("click", orderViaWhatsApp);
+document.getElementById("orderWhatsappBtn").addEventListener("click", () => {
+  new bootstrap.Modal(document.getElementById("orderTypeModal")).show();
+});
+
