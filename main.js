@@ -332,7 +332,7 @@ function orderViaWhatsApp() {
   } else if (orderType === "Delivery") {
     header = `🚚 Delivery\n`;
   } else if (orderType === "Take Away") {
-    header = `🥡 Take Away\n`;
+    header = `🧺 Take Away\n`;
   }
 
   let message = header + "🧾 *New Order*\n";
