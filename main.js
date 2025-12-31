@@ -327,15 +327,15 @@ function orderViaWhatsApp() {
 
   if (orderType === "Dine In") {
     header = tableNumber
-      ? `🪑 Dine In – Table ${tableNumber}\n\n`
-      : `🪑 Dine In\n\n`;
+      ? `🪑 Dine In – Table ${tableNumber}\n`
+      : `🪑 Dine In\n`;
   } else if (orderType === "Delivery") {
-    header = `🚚 Delivery\n\n`;
+    header = `🚚 Delivery\n`;
   } else if (orderType === "Take Away") {
-    header = `🥡 Take Away\n\n`;
+    header = `🥡 Take Away\n`;
   }
 
-  let message = header + "🧾 *New Order*\n\n";
+  let message = header + "🧾 *New Order*\n";
 
   items.forEach(item => {
     const note =
