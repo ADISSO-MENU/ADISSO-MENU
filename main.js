@@ -346,7 +346,7 @@ function orderViaWhatsApp() {
     message += `• ${item.name} ×${item.qty}${note}\n`;
   });
 
-  const phone = "96176146458";
+  const phone = "96176012231";
   const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   window.open(url, "_blank");
 }
