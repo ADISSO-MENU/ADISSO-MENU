@@ -556,10 +556,6 @@ function animateAddFeedback(btn){
         });
       });
 
-      el("scrollToTopBtn").addEventListener("click", () => {
-        window.scrollTo({ top: 0, behavior: "smooth" });
-      });
-
       // Delegate clicks: add-to-cart / cart qty
       document.addEventListener("click", (e) => {
        const addBtn = e.target.closest("[data-add-to-cart]");
