@@ -16,7 +16,7 @@
 
     let allItems = [];
     let currentCategory = "Food";
-
+    let currentSubcategory = null;
     // CART state (stored)
     const CART_KEY = "adi_menu_cart_v1";
     const ORDER_KEY = "adi_menu_ordercode_v1";
@@ -327,7 +327,7 @@ function orderViaWhatsApp() {
 
   if (orderType === "Dine In") {
     header = tableNumber
-      ? `🪑 Dine In – Table ${tableNumber}\n`
+      ? `🪑 Dine In – Table: ${tableNumber}\n`
       : `🪑 Dine In\n`;
   } else if (orderType === "Delivery") {
     header = `🚚 Delivery\n`;
@@ -396,163 +396,131 @@ if (orderType === "Dine In") {
       });
     }
 
-    function renderSubcategoryStrip(subcategories) {
-      const strip = el("subcatStrip");
-      strip.innerHTML = "";
+function renderSubcategoryStrip(subcategories) {
+  const strip = el("subcatStrip");
+  strip.innerHTML = "";
 
-      if (subcategories.length === 0) {
-        strip.innerHTML = `<span class="text-muted">No subcategories found.</span>`;
-        return;
-      }
+  subcategories.forEach((sub, index) => {
+    const btn = document.createElement("button");
+    btn.className = "btn btn-sm btn-outline-primary subcat-chip";
+    btn.textContent = sub;
 
-      for (const sub of subcategories) {
-        const anchorId = `${slugify(currentCategory)}-${slugify(sub)}`;
+    if (sub === currentSubcategory) btn.classList.add("active");
 
-        const a = document.createElement("a");
-        a.href = `#${anchorId}`;
-        a.className = "btn btn-sm btn-outline-primary subcat-chip";
-        a.textContent = sub;
+    btn.onclick = () => {
+      currentSubcategory = sub;
+      renderSubcategoryStrip(subcategories);
+      renderSubcategoryContent();
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    };
 
-        a.addEventListener("click", (e) => {
-          e.preventDefault();
-          const target = document.getElementById(anchorId);
-          if (target) target.scrollIntoView({ behavior: "smooth", block: "start" });
-          history.replaceState(null, "", `#${anchorId}`);
-        });
+    strip.appendChild(btn);
 
-        strip.appendChild(a);
-      }
+    // Auto-select first subcategory
+    if (index === 0 && !currentSubcategory) {
+      currentSubcategory = sub;
     }
+  });
+}
 
-    function renderSections(itemsForCategory) {
-      const content = el("content");
-      content.innerHTML = "";
 
-      if (itemsForCategory.length === 0) {
-        content.innerHTML = `
-          <div class="alert alert-warning">
-            No items found in <strong>${currentCategory}</strong>.
-          </div>`;
-        return;
-      }
+function renderSubcategoryContent() {
+  const content = el("content");
+  content.innerHTML = "";
 
-      const grouped = groupBy(itemsForCategory, x => x.subcategory || "Other");
-      const subcats = Array.from(grouped.keys()).sort((a, b) => {
-        const oa = Math.min(...(grouped.get(a) || []).map(x => Number(x.subcategory_order ?? 999)));
-        const ob = Math.min(...(grouped.get(b) || []).map(x => Number(x.subcategory_order ?? 999)));
-        if (oa !== ob) return oa - ob;
-        return String(a).localeCompare(String(b));
-      });
+  if (!currentSubcategory) return;
 
-      for (const subcat of subcats) {
-        const sectionId = `${slugify(currentCategory)}-${slugify(subcat)}`;
+  const items = allItems.filter(item =>
+    String(item.category || "").toLowerCase() === currentCategory.toLowerCase() &&
+    String(item.subcategory || "Other") === currentSubcategory
+  );
 
-        const section = document.createElement("section");
-        section.className = "mb-5 section-anchor";
-        section.id = sectionId;
+  if (items.length === 0) {
+    content.innerHTML = `<div class="text-muted">No items found.</div>`;
+    return;
+  }
 
-        section.innerHTML = `
-          <div class="d-flex align-items-center justify-content-between mb-3">
-            ${(() => {
-  const firstItem = (grouped.get(subcat) || [])[0];
-  const ar = firstItem?.subcategory_ar?.trim();
-  return `<h2 class="subcat-title">
-            ${subcat}${ar ? ` <span class="subcat-ar">- ${ar}</span>` : ""}
-          </h2>`;
-})()}
+  const section = document.createElement("section");
+  section.className = "mb-4 fade-in";
 
-          </div>
-          <div class="row g-3" id="grid-${sectionId}"></div>
-        `;
+const firstItem = items[0];
+const ar = firstItem?.subcategory_ar?.trim();
 
-        content.appendChild(section);
+section.innerHTML = `
+  <h2 class="subcat-title mb-3">
+    ${currentSubcategory}
+    ${ar ? `<span class="subcat-ar"> - ${ar}</span>` : ""}
+  </h2>
+  <div class="row g-3" id="itemsGrid"></div>
+`;
 
-        const grid = document.getElementById(`grid-${sectionId}`);
-        const itemsSorted = sortByName(grouped.get(subcat));
 
-        for (const item of itemsSorted) {
-          const imgUrl = resolveImageUrl(item);
-          const finalImgUrl = imgUrl || "./assets/placeholder.webp";
+  content.appendChild(section);
 
-          const col = document.createElement("div");
-          col.className = "col-12 col-md-6 col-lg-4";
+  const grid = document.getElementById("itemsGrid");
 
-          col.innerHTML = `
-            <div class="card menu-card h-100">
-<img
-  src="${finalImgUrl}"
-  alt="${item.name || "Menu item"}"
+  items.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
+
+  items.forEach(item => {
+    const imgUrl = resolveImageUrl(item) || "./assets/placeholder.webp";
+
+    const col = document.createElement("div");
+    col.className = "col-12 col-md-6 col-lg-4";
+
+    col.innerHTML = `
+      <div class="card menu-card h-100">
+        <img
+  src="${imgUrl}"
   class="item-img"
   loading="lazy"
   style="cursor: zoom-in;"
   data-bs-toggle="modal"
   data-bs-target="#imgModal"
-  data-fullimg="${finalImgUrl}"
-  onerror="this.onerror=null; this.src='./assets/placeholder.webp';"
+  data-fullimg="${imgUrl}"
+  onerror="this.onerror=null;this.src='./assets/placeholder.webp';"
 />
 
+        <div class="card-body">
+          <div class="item-name fw-semibold">${item.name ?? ""}</div>
+          ${item.name_ar ? `<div class="item-name-ar">${item.name_ar}</div>` : ""}
+          ${item.description ? `
+            <div class="item-desc-wrap">
+              <span class="item-desc">${item.description}</span>
+              <span class="desc-more">more</span>
+            </div>` : ""}
+          <div class="d-flex justify-content-between align-items-center mt-2">
+            <div class="price">${priceUSD(item.price)}</div>
+            <button class="order-btn btn btn-sm btn-outline-dark"
+              data-add-to-cart="${item.id}">
+              Add Order
+            </button>
+          </div>
+        </div>
+      </div>
+    `;
 
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start gap-3">
-                  <div style="min-width:0;">
-                   <div class="item-name fw-semibold">${item.name ?? ""}</div>
-${
-  item.name_ar
-    ? `<div class="item-name-ar">${item.name_ar}</div>`
-    : ""
+    grid.appendChild(col);
+  });
+
+  markTruncatedDescriptions();
 }
 
-                    ${
-                      item.description
-                        ? `
-                          <div class="item-desc-wrap">
-                            <span class="item-desc">${item.description}</span>
-                            <span class="desc-more">more</span>
-                          </div>`
-                        : ""
-                    }
-                  </div>
+function renderCurrentCategory() {
+  renderCategoryButtons();
 
-                <div class="d-flex flex-column align-items-end">
-  <div class="price">${priceUSD(item.price)}</div>
+  const itemsForCategory = allItems.filter(x =>
+    String(x.category || "").toLowerCase() === currentCategory.toLowerCase()
+  );
 
-<button class="btn btn-sm btn-outline-dark mt-2 order-btn"
-        data-add-to-cart="${item.id}">
-  Add Order
-</button>
+  const grouped = groupBy(itemsForCategory, x => x.subcategory || "Other");
+  const subcategories = Array.from(grouped.keys());
 
-</div>
+  currentSubcategory = null; // reset when changing category
 
-                </div>
-              </div>
-            </div>
-          `;
+  renderSubcategoryStrip(subcategories);
+  renderSubcategoryContent();
+}
 
-          grid.appendChild(col);
-        }
-      }
-
-      markTruncatedDescriptions();
-    }
-
-    function renderCurrentCategory() {
-      renderCategoryButtons();
-
-      const itemsForCategory = allItems.filter(x =>
-        String(x.category || "").trim().toLowerCase() === currentCategory.toLowerCase()
-      );
-
-      const grouped = groupBy(itemsForCategory, x => x.subcategory || "Other");
-      const subcategories = Array.from(grouped.keys()).sort((a, b) => {
-        const oa = Math.min(...(grouped.get(a) || []).map(x => Number(x.subcategory_order ?? 999)));
-        const ob = Math.min(...(grouped.get(b) || []).map(x => Number(x.subcategory_order ?? 999)));
-        if (oa !== ob) return oa - ob;
-        return String(a).localeCompare(String(b));
-      });
-
-      renderSubcategoryStrip(subcategories);
-      renderSections(itemsForCategory);
-    }
 function animateAddFeedback(btn){
   if (!btn) return;
 
@@ -643,14 +611,18 @@ if (addBtn) {
       updateCartBadge();
 ;
     })();
-    document.addEventListener("click", (e) => {
-  const img = e.target.closest("img[data-fullimg]");
-  if (!img) return;
+const imgModal = document.getElementById("imgModal");
+imgModal.addEventListener("show.bs.modal", function (event) {
+  const triggerImg = event.relatedTarget;
+  if (!triggerImg) return;
 
   const modalImg = document.getElementById("imgModalEl");
-  modalImg.src = img.getAttribute("data-fullimg");
-  modalImg.alt = img.alt || "Image";
+  modalImg.src = triggerImg.getAttribute("data-fullimg");
+  modalImg.alt = triggerImg.alt || "";
 });
+
+
+
 document.getElementById("orderWhatsappBtn").addEventListener("click", () => {
   new bootstrap.Modal(document.getElementById("orderTypeModal")).show();
 });
